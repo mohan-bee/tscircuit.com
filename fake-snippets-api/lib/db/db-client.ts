@@ -258,6 +258,7 @@ const initializer = combine(databaseSchema.parse({}), (set, get) => ({
       license: null,
       website: null,
       star_count: 0,
+      fork_count: 0,
       created_at: currentTime,
       updated_at: currentTime,
       ai_description: "placeholder ai description",
@@ -351,6 +352,7 @@ const initializer = combine(databaseSchema.parse({}), (set, get) => ({
       dts: snippet.dts,
       compiled_js: snippet.compiled_js,
       star_count: 0,
+      fork_count: 0,
       created_at: currentTime,
       updated_at: currentTime,
       snippet_type: snippet.snippet_type,
@@ -414,6 +416,7 @@ const initializer = combine(databaseSchema.parse({}), (set, get) => ({
           created_at: pkg.created_at,
           updated_at: pkg.updated_at,
           star_count: pkg.star_count || 0,
+          fork_count: pkg.fork_count || 0,
           is_starred: isStarred,
           version: pkg.latest_version || "0.0.1",
           circuit_json:
@@ -493,6 +496,7 @@ const initializer = combine(databaseSchema.parse({}), (set, get) => ({
           updated_at: pkg.updated_at,
           snippet_type: pkg.is_snippet ? "board" : "package",
           star_count: pkg.star_count,
+          fork_count: pkg.fork_count,
         }
       })
       .filter((snippet) => snippet !== null)
@@ -562,6 +566,7 @@ const initializer = combine(databaseSchema.parse({}), (set, get) => ({
       created_at: _package.created_at,
       updated_at: _package.updated_at,
       star_count: _package.star_count || 0,
+      fork_count: _package.fork_count || 0,
       is_starred: false,
       version: _package.latest_version || "0.0.1",
       circuit_json: packageFiles.find(
@@ -752,6 +757,7 @@ const initializer = combine(databaseSchema.parse({}), (set, get) => ({
       created_at: updatedPackage.created_at,
       updated_at: updatedPackage.updated_at,
       star_count: updatedPackage.star_count || 0,
+      fork_count: updatedPackage.fork_count || 0,
       is_starred: false,
       version: updatedPackage.latest_version || "0.0.1",
       circuit_json: circuitFile
@@ -837,6 +843,7 @@ const initializer = combine(databaseSchema.parse({}), (set, get) => ({
       created_at: _package.created_at,
       updated_at: _package.updated_at,
       star_count: _package.star_count || 0,
+      fork_count: _package.fork_count || 0,
       is_starred: isStarred,
       version: _package.latest_version || "0.0.1",
       circuit_json: packageFiles.find(
@@ -1110,6 +1117,7 @@ const initializer = combine(databaseSchema.parse({}), (set, get) => ({
       }
     })
   },
+  
   hasStarred: (accountId: string, packageId: string): boolean => {
     const state = get()
     return state.accountPackages.some(
@@ -1125,6 +1133,7 @@ const initializer = combine(databaseSchema.parse({}), (set, get) => ({
     const timestamp = Date.now()
     const newPackage = {
       package_id: `package_${timestamp}`,
+      fork_count: 0,
       ..._package,
     }
     set((state) => ({
@@ -1242,4 +1251,5 @@ const initializer = combine(databaseSchema.parse({}), (set, get) => ({
       (pf) => pf.package_release_id === packageReleaseId,
     )
   },
+  
 }))

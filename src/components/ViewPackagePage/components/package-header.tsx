@@ -37,7 +37,6 @@ export default function PackageHeader({
   const { addStar, removeStar } = usePackageStarMutationByName(
     packageInfo?.name ?? "",
   )
-
   const { mutateAsync: forkPackage, isLoading: isForkLoading } =
     useForkPackageMutation()
 
@@ -139,7 +138,12 @@ export default function PackageHeader({
                 }
               >
                 <GitFork className="w-4 h-4 mr-2" />
-                Fork
+                {(packageInfo as any)?.fork_count ? "Forks" : "Fork"}
+              {((packageInfo as any)?.fork_count ?? 0) > 0 && (
+                <span className="ml-1.5 bg-gray-100 text-gray-700 rounded-full px-1.5 py-0.5 text-xs font-medium">
+                  {(packageInfo as any)?.fork_count}
+                </span>
+              )}
               </Button>
             )}
           </div>

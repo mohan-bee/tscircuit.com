@@ -102,7 +102,7 @@ export const PreviewContent = ({
 
   useEffect(() => {
     if (activeTab === "code" && circuitJson && !errorMessage) {
-      setActiveTab("pcb")
+      setActiveTab("cad")
     }
   }, [circuitJson])
 

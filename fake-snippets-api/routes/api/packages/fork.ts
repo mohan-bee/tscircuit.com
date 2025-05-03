@@ -122,7 +122,12 @@ export default withRouteSpec({
     is_footprint: Boolean(sourcePackage.is_footprint),
     is_snippet: Boolean(sourcePackage.is_snippet),
   })
+  sourcePackage.fork_count = (sourcePackage.fork_count || 0) + 1
 
+  ctx.db.updatePackage(sourcePackage.package_id, {
+    fork_count: sourcePackage?.fork_count
+  })
+  
   if (!forkedPackage) {
     return ctx.error(500, {
       error_code: "failed_to_create_forked_package",
