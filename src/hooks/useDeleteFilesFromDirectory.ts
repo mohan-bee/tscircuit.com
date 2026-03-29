@@ -110,8 +110,19 @@ export function useDeleteFilesFromDirectory({
     return { deleted: true }
   }
 
+  const renameDirectory = (oldPath: string, newPath: string) => {
+    setPreservedDirectories((prev) => {
+      if (!prev.has(oldPath)) return prev
+      const next = new Set(prev)
+      next.delete(oldPath)
+      next.add(newPath)
+      return next
+    })
+  }
+
   return {
     deleteDirectory,
+    renameDirectory,
     preservedDirectories,
   }
 }

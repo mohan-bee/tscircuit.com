@@ -340,7 +340,7 @@ export function useFileManagement({
     }
   }
 
-  const { deleteDirectory, preservedDirectories } = useDeleteFilesFromDirectory(
+  const { deleteDirectory, renameDirectory, preservedDirectories } = useDeleteFilesFromDirectory(
     {
       localFiles,
       setLocalFiles,
@@ -448,18 +448,51 @@ export function useFileManagement({
   }: IRenameFileProps): IRenameFileResult => {
     newFilename = newFilename.trim()
     if (!newFilename) {
-      onError(new Error("File name cannot be empty"))
-      return {
-        fileRenamed: false,
-      }
+      onError(new Error("Name cannot be empty"))
+      return { fileRenamed: false }
     }
 
     const fileNameOnly = newFilename.split("/").pop() || ""
     if (!isValidFileName(fileNameOnly)) {
-      onError(new Error("Invalid file name"))
-      return {
-        fileRenamed: false,
+      onError(new Error("Invalid name"))
+      return { fileRenamed: false }
+    }
+
+    const oldDirPrefix = oldFilename.endsWith("/") ? oldFilename : `${oldFilename}/`
+    const newDirPrefix = newFilename.endsWith("/") ? newFilename : `${newFilename}/`
+    
+    const isDirectory = localFiles?.some((f) => f.path.startsWith(oldDirPrefix)) || preservedDirectories.has(oldFilename)
+
+    if (isDirectory) {
+      if (localFiles?.some((f) => f.path === newFilename || f.path.startsWith(newDirPrefix))) {
+        onError(new Error("Target folder already exists"))
+        return { fileRenamed: false }
       }
+
+      const updatedFiles = localFiles.map((file) => {
+        if (file.path === oldFilename) return { ...file, path: newFilename }
+        if (file.path.startsWith(oldDirPrefix)) {
+          return {
+            ...file,
+            path: file.path.replace(oldDirPrefix, newDirPrefix),
+          }
+        }
+        return file
+      })
+
+      setLocalFiles(updatedFiles)
+
+      if (preservedDirectories.has(oldFilename)) {
+        renameDirectory(oldFilename, newFilename)
+      }
+
+      if (currentFile?.startsWith(oldDirPrefix)) {
+        setCurrentFile(currentFile.replace(oldDirPrefix, newDirPrefix))
+      } else if (currentFile === oldFilename) {
+        setCurrentFile(newFilename)
+      }
+
+      return { fileRenamed: true }
     }
 
     const oldFileExists = localFiles?.some((file) => file.path === oldFilename)
