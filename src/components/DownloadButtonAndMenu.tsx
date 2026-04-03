@@ -8,7 +8,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { toast, useNotImplementedToast } from "@/hooks/use-toast"
+import { toast } from "@/hooks/use-toast"
 import { downloadCircuitJson } from "@/lib/download-fns/download-circuit-json-fn"
 import { downloadSimpleRouteJson } from "@/lib/download-fns/download-simple-route-json"
 import { downloadDsnFile } from "@/lib/download-fns/download-dsn-file-fn"
@@ -19,6 +19,7 @@ import { downloadSpiceFile } from "@/lib/download-fns/download-spice-file"
 import { downloadAssemblySvg } from "@/lib/download-fns/download-assembly-svg"
 import { usePcbDownloadDialog } from "@/components/dialogs/pcb-download-dialog"
 import { downloadKicadFiles } from "@/lib/download-fns/download-kicad-files"
+import { downloadKicadFootprint } from "@/lib/download-fns/download-kicad-footprint"
 import { AnyCircuitElement } from "circuit-json"
 import { ChevronDown, Download, Hammer } from "lucide-react"
 import { downloadGltfFromCircuitJson } from "@/lib/download-fns/download-gltf-from-circuit-json"
@@ -50,7 +51,6 @@ export function DownloadButtonAndMenu({
   offerMultipleImageFormats = false,
   circuitJson,
 }: DownloadButtonAndMenuProps) {
-  const notImplemented = useNotImplementedToast()
   const { Dialog: PcbDownloadDialog, openDialog: openPcbDownloadDialog } =
     usePcbDownloadDialog()
   const axios = useAxios()
@@ -343,7 +343,21 @@ export function DownloadButtonAndMenu({
             <DropdownMenuSubContent className="min-w-[14rem]">
               <DropdownMenuItem
                 className="text-xs"
-                onClick={() => notImplemented("kicad footprint download")}
+                onSelect={async () => {
+                  try {
+                    const cj = await getCircuitJson()
+                    await downloadKicadFootprint(
+                      cj,
+                      unscopedName || "kicad_footprint",
+                    )
+                  } catch (error: any) {
+                    toast({
+                      title: "Error Downloading KiCad Footprint",
+                      description: error?.toString?.() || "Unknown error",
+                      variant: "destructive",
+                    })
+                  }
+                }}
               >
                 <Download className="mr-1 h-3 w-3" />
                 <span className="flex-grow mr-6">Footprint</span>

@@ -26,13 +26,14 @@ import {
   acceptCompletion,
   autocompletion,
   completionStatus,
+  type CompletionSource,
 } from "@codemirror/autocomplete"
 import { indentMore, indentWithTab } from "@codemirror/commands"
 import { javascript } from "@codemirror/lang-javascript"
 import { json } from "@codemirror/lang-json"
-import { linter } from "@codemirror/lint"
+import { linter, type Diagnostic } from "@codemirror/lint"
 import { Compartment, EditorState, Prec, StateEffect } from "@codemirror/state"
-import { Decoration, hoverTooltip, keymap } from "@codemirror/view"
+import { Decoration, hoverTooltip, keymap, EditorView } from "@codemirror/view"
 import { getImportsFromCode } from "@tscircuit/prompt-benchmarks/code-runner-utils"
 import type { ATABootstrapConfig } from "@typescript/ata"
 import { setupTypeAcquisition } from "@typescript/ata"
@@ -42,7 +43,6 @@ import {
 } from "@typescript/vfs"
 import { tsAutocomplete, tsFacet, tsSync } from "@valtown/codemirror-ts"
 import { getLints } from "@valtown/codemirror-ts"
-import { EditorView } from "codemirror"
 import { inlineCopilot } from "codemirror-copilot"
 import type { Package } from "fake-snippets-api/lib/db/schema"
 import { Download, FileWarning, Loader2 } from "lucide-react"
@@ -406,13 +406,15 @@ export const CodeEditor = ({
               }
               const config = view.state.facet(tsFacet)
               return config
-                ? getLints({
+                ? (getLints({
                     ...config,
                     diagnosticCodesToIgnore: [],
-                  })
+                  }) as unknown as readonly Diagnostic[])
                 : []
             }),
-            autocompletion({ override: [tsAutocomplete()] }),
+            autocompletion({
+              override: [tsAutocomplete() as unknown as CompletionSource],
+            }),
             hoverTooltip((view, pos) => {
               const line = view.state.doc.lineAt(pos)
               const lineStart = line.from

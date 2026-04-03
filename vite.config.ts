@@ -257,7 +257,12 @@ export default defineConfig(async (): Promise<UserConfig> => {
       "process.env": JSON.stringify({}),
     },
     optimizeDeps: {
-      exclude: ["@resvg/resvg-js", "@resvg/resvg-js-darwin-arm64"],
+      exclude: [
+        "@resvg/resvg-js",
+        "@resvg/resvg-js-darwin-arm64",
+        "circuit-json-to-step",
+        "occt-import-js",
+      ],
     },
     server: {
       host: "127.0.0.1",

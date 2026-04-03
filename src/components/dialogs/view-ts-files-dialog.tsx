@@ -19,9 +19,12 @@ import {
 } from "lucide-react"
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
-import { EditorView } from "codemirror"
 import { EditorState } from "@codemirror/state"
-import { autocompletion } from "@codemirror/autocomplete"
+import {
+  autocompletion,
+  type CompletionSource,
+} from "@codemirror/autocomplete"
+import { EditorView } from "@codemirror/view"
 import { basicSetup } from "@/lib/codemirror/basic-setup"
 import { javascript } from "@codemirror/lang-javascript"
 import { json } from "@codemirror/lang-json"
@@ -214,7 +217,9 @@ export const ViewTsFilesDialog: React.FC<ViewTsFilesDialogProps> = ({
             : selectedFile,
         }),
         tsSync(),
-        autocompletion({ override: [tsAutocomplete()] }),
+        autocompletion({
+          override: [tsAutocomplete() as unknown as CompletionSource],
+        }),
         EditorView.domEventHandlers({
           click: (event, view) => {
             if (event.ctrlKey || event.metaKey) {
