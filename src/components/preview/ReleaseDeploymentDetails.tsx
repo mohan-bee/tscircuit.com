@@ -90,15 +90,21 @@ export function ReleaseDeploymentDetails({
         ) {
           return true
         }
-        return domain.points_to === "package" && domain.package_id === pkg.package_id
+        return (
+          domain.points_to === "package" && domain.package_id === pkg.package_id
+        )
       }),
-    [domains, packageRelease.package_release_id, packageRelease.is_latest, pkg.package_id],
+    [
+      domains,
+      packageRelease.package_release_id,
+      packageRelease.is_latest,
+      pkg.package_id,
+    ],
   )
 
-  const primaryWebsiteUrl =
-    relevantDomains[0]?.fully_qualified_domain_name
-      ? `https://${relevantDomains[0].fully_qualified_domain_name}`
-      : packageRelease.package_release_website_url
+  const primaryWebsiteUrl = relevantDomains[0]?.fully_qualified_domain_name
+    ? `https://${relevantDomains[0].fully_qualified_domain_name}`
+    : packageRelease.package_release_website_url
 
   const [waitingSeconds, setWaitingSeconds] = useState(0)
 
