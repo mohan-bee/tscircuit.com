@@ -13,6 +13,8 @@ import {
   AlertTriangle,
   PanelRightClose,
   Bot,
+  Code2,
+  Eye,
   FileText,
   Package,
   MoreHorizontal,
@@ -41,6 +43,7 @@ import { ICreateFileProps, ICreateFileResult } from "@/hooks/useFileManagement"
 import { useGlobalStore } from "@/hooks/use-global-store"
 import { openJlcpcbImportIssue } from "@/hooks/use-jlcpcb-component-import"
 export type FileName = string
+export type SvgViewMode = "code" | "preview"
 
 interface CodeEditorHeaderProps {
   currentFile: FileName | null
@@ -53,6 +56,9 @@ interface CodeEditorHeaderProps {
   isLoadingFiles: boolean
   createFile: (props: ICreateFileProps) => ICreateFileResult
   aiAutocompleteState: [boolean, React.Dispatch<React.SetStateAction<boolean>>]
+  svgViewMode?: SvgViewMode
+  onSvgViewModeChange?: (mode: SvgViewMode) => void
+  showSvgViewToggle?: boolean
 }
 
 export const CodeEditorHeader: React.FC<CodeEditorHeaderProps> = ({
@@ -65,6 +71,9 @@ export const CodeEditorHeader: React.FC<CodeEditorHeaderProps> = ({
   entrypointFileName = "index.tsx",
   createFile,
   aiAutocompleteState,
+  svgViewMode = "code",
+  onSvgViewModeChange,
+  showSvgViewToggle = false,
 }) => {
   const { Dialog: ImportComponentDialog, openDialog: openImportDialog } =
     useImportComponentDialog()
@@ -358,6 +367,49 @@ export const CodeEditorHeader: React.FC<CodeEditorHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-1 ml-auto">
+          {showSvgViewToggle && onSvgViewModeChange && (
+            <TooltipProvider>
+              <div className="flex items-center rounded-md border border-gray-200 bg-gray-50 p-0.5">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={svgViewMode === "code" ? "secondary" : "ghost"}
+                      className="h-7 px-2"
+                      aria-label="Show SVG code"
+                      onClick={() => onSvgViewModeChange("code")}
+                    >
+                      <Code2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Show SVG code</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={
+                        svgViewMode === "preview" ? "secondary" : "ghost"
+                      }
+                      className="h-7 px-2"
+                      aria-label="Preview SVG"
+                      onClick={() => onSvgViewModeChange("preview")}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Preview SVG</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
+          )}
+
           {checkIfManualEditsImported(files, currentFile || "") && (
             <TooltipProvider>
               <Tooltip>

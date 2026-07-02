@@ -1,6 +1,7 @@
 import { useViewTsFilesDialog } from "@/components/dialogs/view-ts-files-dialog"
 import CodeEditorHeader, {
   FileName,
+  type SvgViewMode,
 } from "@/components/package-port/CodeEditorHeader"
 import { useAxios } from "@/hooks/use-axios"
 import { useHotkeyCombo } from "@/hooks/use-hotkey"
@@ -59,6 +60,32 @@ import { Circuit, createUseComponent } from "@tscircuit/core"
 import type { CommonLayoutProps } from "@tscircuit/props"
 `
 
+const getSvgPreviewDocument = (svgCode: string) => `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        background: white;
+      }
+
+      svg {
+        max-width: 100%;
+        max-height: 100%;
+      }
+    </style>
+  </head>
+  <body>${svgCode}</body>
+</html>`
+
 export const CodeEditor = ({
   onCodeChange,
   isPriorityFileFetched,
@@ -115,6 +142,7 @@ export const CodeEditor = ({
   const [fontSize, setFontSize] = useState(14)
   const [showQuickOpen, setShowQuickOpen] = useState(false)
   const [showGlobalFindReplace, setShowGlobalFindReplace] = useState(false)
+  const [svgViewMode, setSvgViewMode] = useState<SvgViewMode>("code")
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null)
   const highlightTimeoutRef = useRef<number | null>(null)
 
@@ -180,6 +208,44 @@ export const CodeEditor = ({
     return map
   }, [files])
 
+  const currentFileIsSvg = currentFile?.toLowerCase().endsWith(".svg") ?? false
+  const svgPreview = useMemo(() => {
+    const currentSvgCode = fileMap[currentFile || ""] || code
+    const trimmedSvgCode = currentSvgCode.trim()
+
+    if (!trimmedSvgCode) {
+      return { srcDoc: "", error: "This SVG file is empty." }
+    }
+
+    if (typeof window === "undefined") {
+      return { srcDoc: "", error: null }
+    }
+
+    try {
+      const parsedSvg = new DOMParser().parseFromString(
+        trimmedSvgCode,
+        "image/svg+xml",
+      )
+      const parserError = parsedSvg.querySelector("parsererror")
+      const svgElement = parsedSvg.documentElement
+
+      if (parserError || svgElement.nodeName.toLowerCase() !== "svg") {
+        return { srcDoc: "", error: "This file does not contain valid SVG." }
+      }
+
+      const serializedSvg = new XMLSerializer().serializeToString(svgElement)
+      return {
+        srcDoc: getSvgPreviewDocument(serializedSvg),
+        error: null,
+      }
+    } catch {
+      return { srcDoc: "", error: "This file does not contain valid SVG." }
+    }
+  }, [code, currentFile, fileMap])
+
+  const isShowingSvgPreview =
+    currentFileIsSvg && svgViewMode === "preview" && !isPriorityFileFetched
+
   useEffect(() => {
     const currentFileContent =
       files.find((f) => f.path === currentFile)?.content || ""
@@ -210,6 +276,12 @@ export const CodeEditor = ({
     },
     { target: window },
   )
+
+  useEffect(() => {
+    if (!currentFileIsSvg && svgViewMode !== "code") {
+      setSvgViewMode("code")
+    }
+  }, [currentFileIsSvg, svgViewMode])
 
   useEffect(() => {
     if (!editorRef.current) return
@@ -844,6 +916,9 @@ export const CodeEditor = ({
               aiAutocompleteEnabled,
               setAiAutocompleteEnabled,
             ]}
+            svgViewMode={svgViewMode}
+            onSvgViewModeChange={setSvgViewMode}
+            showSvgViewToggle={currentFileIsSvg}
           />
         )}
         {currentFileIsBinary ? (
@@ -871,8 +946,31 @@ export const CodeEditor = ({
               className={
                 "flex-1 overflow-auto [&_.cm-editor]:h-full [&_.cm-scroller]:!h-full"
               }
-              style={{ display: isPriorityFileFetched ? "none" : "block" }}
+              style={{
+                display:
+                  isPriorityFileFetched || isShowingSvgPreview
+                    ? "none"
+                    : "block",
+              }}
             />
+            {isShowingSvgPreview && (
+              <div className="flex-1 min-h-0 overflow-auto bg-slate-100 p-4">
+                <div className="flex h-full min-h-[240px] items-center justify-center rounded-md border border-slate-200 bg-white">
+                  {svgPreview.error ? (
+                    <p className="px-4 text-center text-sm text-slate-500">
+                      {svgPreview.error}
+                    </p>
+                  ) : (
+                    <iframe
+                      title="SVG preview"
+                      sandbox=""
+                      srcDoc={svgPreview.srcDoc}
+                      className="h-full min-h-[240px] w-full border-0"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
             {isPriorityFileFetched && (
               <div className="grid place-items-center h-full">
                 <Loader2 className="w-16 h-16 animate-spin text-gray-400" />
